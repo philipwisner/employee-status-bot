@@ -22,14 +22,14 @@ app.get("/", (req, res) => {
 });
 /*
   This is a combo bot & slash command App
-    - Be able to perform slash commands anywhere that just update your status
+    ✓ Be able to perform slash commands anywhere that just update your status
     - Be able to message to bot to update your status and get user's status
 
   It should send a message on slack at 9:30am M-F to ask users their status
     - Have button options to select status
 
   You should be able to do slash commands at any time to update your status
-    - e.g. /home /office /vacation /status etc
+    ✓ e.g. /home /office /vacation /status etc
 
   You should be able to ask the bot what the status of a certain user is
     - e.g. Where is @philipwisner
@@ -49,16 +49,17 @@ app.get("/", (req, res) => {
 
 app.post("/", (req, res) => {
   let command = req.body.command;
-  let status, emoji;
-  var userName = req.body.user_name;
-  var userId = req.body.user_id;
-  var channelId = req.body.channel_id;
+  let status, emoji, help;
+  let userName = req.body.user_name;
+  let userId = req.body.user_id;
+  let channelId = req.body.channel_id;
+  //let expiration = +Date.now();
   console.log(`${userName} has requested ${command}`);
 
+
   switch (command) {
-    case "/status":
-      status = "What do you want to change your status to?";
-      emoji = ":question:";
+    case "/options":
+      help = true;
       break;
     case "/home":
       status = "Working from Home";
@@ -88,39 +89,98 @@ app.post("/", (req, res) => {
       status = "Being a Fox";
       emoji = ":thefox:";
       break;
+    case "/lunch":
+      status = "Eating Lunch";
+      emoji = ":pizza:";
+      break;
     default:
-      status = "Not recognized";
-      emoji = ":question:";
+      help = true;
   }
-  let data = {
-    form: {
-      token: process.env.SLACK_AUTH_TOKEN,
-      profile: {
-        status_text: status,
-        status_emoji: emoji,
-        status_expiration: 0
-      }
-    }
-  };
+
 
   (async () => {
-    const result = await web.users.profile.set({
-      profile: {
-        status_text: status,
-        status_emoji: emoji,
-        status_expiration: 0
-      }
-    });
 
-    const success = await web.chat.postEphemeral({
-      attachments: [{text: `*${status}* ${emoji}` }],
-      channel: channelId,
-      text: 'You changed your status to',
-      user: userId,
-      reply_broadcast: false,
-      as_user: false,
-      username: "Status Bot",
-    });
+    if (help) {
+      const error = await web.chat.postEphemeral({
+        attachments: [
+          {
+            text: "You can set your status using the following commands",
+            actions: [
+              {
+                name: "status",
+                text: "home",
+                type: "button",
+                value: "/home",
+                action_id: "/home"
+              },
+              {
+                name: "status",
+                text: "office",
+                type: "button",
+                value: "/office"
+              },
+              {
+                name: "status",
+                text: "vacation",
+                type: "button",
+                value: "/vacation"
+              },
+              {
+                name: "status",
+                text: "sick",
+                type: "button",
+                value: "/sick"
+              },
+              {
+                name: "status",
+                text: "late",
+                type: "button",
+                value: "/late"
+              },
+              {
+                name: "status",
+                text: "meeting",
+                type: "button",
+                value: "/meeting"
+              }
+            ]
+          }
+        ],
+        channel: channelId,
+        //text: "You can set your status using the following commands",
+        user: userId,
+        reply_broadcast: false,
+        as_user: false,
+        username: "Status Bot"
+      });
+    } else {
+      const result = await web.users.profile.set({
+        profile: {
+          status_text: status,
+          status_emoji: emoji,
+          status_expiration: 0
+        }
+      });
+
+      const success = await web.chat.postEphemeral({
+        attachments: [{ text: `${emoji} *${status}*` }],
+        channel: channelId,
+        text: "You changed your status to",
+        user: userId,
+        reply_broadcast: false,
+        as_user: false,
+        username: "Status Bot"
+      });
+
+      /*
+      const schedule = await web.chat.scheduleMessage({
+        channel: "bot_test",
+        text: "Don't forget to update your status.",
+        post_at: 1566488565
+      });
+      */
+    }
+
     res.json()
 
     /*

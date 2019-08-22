@@ -5,6 +5,7 @@ const request = require("request");
 const { WebClient } = require("@slack/web-api");
 const token = process.env.SLACK_AUTH_TOKEN;
 const web = new WebClient(token);
+const helper = require("./helper/helper");
 
 const app = express();
 const PORT = 3000;
@@ -16,21 +17,6 @@ app.listen(process.env.PORT || PORT, function() {
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
-async function fetchUserStatus(userId) {
-  const info = await web.users.profile.get({
-    user: userId
-  });
-  let user = {
-    name: info.profile.real_name,
-    status: `${info.profile.status_emoji} ${info.profile.status_text}`
-  };
-  //console.log('user is', user)
-  return user;
-}
-
-
-
-
 
 app.get("/", (req, res) => {
   console.log("Request was made at", req.url);
@@ -40,15 +26,14 @@ app.get("/", (req, res) => {
 app.get("/status", (req, res) => {
   (async () => {
     const mems = await web.conversations.members({
-      channel: 'GHSG8EQF9'
+      channel: "GDVTDFL4A"
     });
 
     let members = mems.members;
     let users = [];
 
-
     await members.forEach(async member => {
-      users.push((fetchUserStatus(member)));
+      users.push((helper.fetchUserStatus(member)));
     });
 
     Promise.all(users).then((users) => {

@@ -50,9 +50,9 @@ app.get("/", (req, res) => {
 app.post("/", (req, res) => {
   let command = req.body.command;
   let status, emoji;
-  var userId = req.body.user_id;
   var userName = req.body.user_name;
-
+  var userId = req.body.user_id;
+  var channelId = req.body.channel_id;
   console.log(`${userName} has requested ${command}`);
 
   switch (command) {
@@ -61,28 +61,32 @@ app.post("/", (req, res) => {
       emoji = ":question:";
       break;
     case "/home":
-      status = "Working from home";
+      status = "Working from Home";
       emoji = ":house:";
       break;
     case "/office":
-      status = "In the office";
+      status = "In the Office";
       emoji = ":office:";
       break;
     case "/vacation":
-      status = "On vacation";
+      status = "On Vacation";
       emoji = ":palm_tree:";
       break;
     case "/sick":
-      status = "Out sick";
+      status = "Out Sick";
       emoji = ":face_with_thermometer:";
       break;
     case "/late":
-      status = "Running late";
+      status = "Running Late";
       emoji = ":runner:";
       break;
     case "/meeting":
-      status = "In a meeting";
+      status = "In a Meeting";
       emoji = ":spiral_calendar_pad:";
+      break;
+    case "/fox":
+      status = "Being a Fox";
+      emoji = ":thefox:";
       break;
     default:
       status = "Not recognized";
@@ -99,21 +103,6 @@ app.post("/", (req, res) => {
     }
   };
 
-  /*
-  (async () => {
-    const result = await web.users.profile.get({
-      include_labels: true,
-      user: userId,
-    });
-
-    // The result contains an identifier for the message, `ts`.
-    console.log(
-      "Successfully sent message" + JSON.stringify(result)
-    );
-  })();
-  */
-
-
   (async () => {
     const result = await web.users.profile.set({
       profile: {
@@ -123,22 +112,29 @@ app.post("/", (req, res) => {
       }
     });
 
-    const success = await web.chat.postMessage({
-      text: `Your status is now ${status} ${emoji}`,
+    const success = await web.chat.postEphemeral({
+      attachments: [{text: `*${status}* ${emoji}` }],
+      channel: channelId,
+      text: 'You changed your status to',
+      user: userId,
       reply_broadcast: false,
       as_user: false,
       username: "Status Bot",
-      channel: "bot_test"
     });
+    res.json()
 
+    /*
+    const success = await web.chat.postMessage({
+      text: `Your status is now *${status}* ${emoji}`,
+      reply_broadcast: false,
+      as_user: false,
+      username: "Status Bot",
+      channel: channelId
+    });
+    */
 
-    // The result contains an identifier for the message, `ts`.
-    console.log(
-      `Successfully updated status`, JSON.stringify(result)
-    );
-    console.log(
-      `Successfully sent message`, JSON.stringify(success)
-    );
+    //console.log(`Successfully updated status`, JSON.stringify(result));
+    //console.log(`Successfully sent message`, JSON.stringify(success));
   })();
 
 

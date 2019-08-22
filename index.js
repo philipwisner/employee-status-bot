@@ -2,6 +2,9 @@ require("dotenv").config();
 const express = require("express");
 const bodyParser = require("body-parser");
 const request = require("request");
+const { WebClient } = require("@slack/web-api");
+const token = process.env.SLACK_AUTH_TOKEN;
+const web = new WebClient(token);
 
 const app = express();
 const PORT = 3000;
@@ -17,8 +20,6 @@ app.get("/", (req, res) => {
   console.log("Request was made at", req.url);
   res.status(200);
 });
-
-
 /*
   This is a combo bot & slash command App
     - Be able to perform slash commands anywhere that just update your status
@@ -47,44 +48,104 @@ app.get("/", (req, res) => {
 */
 
 app.post("/", (req, res) => {
-  var command = req.body.command;
-  console.log("reached endpoint and command is", command);
-  var text;
+  let command = req.body.command;
+  let status, emoji;
+  var userId = req.body.user_id;
+  var userName = req.body.user_name;
+
+  console.log(`${userName} has requested ${command}`);
+
   switch (command) {
     case "/status":
-      text = "What do you want to change your status to";
+      status = "What do you want to change your status to?";
+      emoji = ":question:";
       break;
     case "/home":
-      text = "You have changed your status to working from home";
+      status = "Working from home";
+      emoji = ":house:";
       break;
     case "/office":
-      text = "You have changed your status to in the office";
+      status = "In the office";
+      emoji = ":office:";
       break;
     case "/vacation":
-      text = "You have changed your status to on vacation";
+      status = "On vacation";
+      emoji = ":palm_tree:";
       break;
     case "/sick":
-      text = "You have changed your status to sick";
+      status = "Out sick";
+      emoji = ":face_with_thermometer:";
       break;
     case "/late":
-      text = "You have changed your status to running late";
+      status = "Running late";
+      emoji = ":runner:";
       break;
     case "/meeting":
-      text = "You have changed your status to in a meeting";
+      status = "In a meeting";
+      emoji = ":spiral_calendar_pad:";
       break;
     default:
-      text = "Not recognized";
+      status = "Not recognized";
+      emoji = ":question:";
   }
-  var data = {
+  let data = {
     form: {
       token: process.env.SLACK_AUTH_TOKEN,
-      channel: "bot_test",
-      text: `Hi! :wave: \n You entered ${text}.`
+      profile: {
+        status_text: status,
+        status_emoji: emoji,
+        status_expiration: 0
+      }
     }
   };
+
+  /*
+  (async () => {
+    const result = await web.users.profile.get({
+      include_labels: true,
+      user: userId,
+    });
+
+    // The result contains an identifier for the message, `ts`.
+    console.log(
+      "Successfully sent message" + JSON.stringify(result)
+    );
+  })();
+  */
+
+
+  (async () => {
+    const result = await web.users.profile.set({
+      profile: {
+        status_text: status,
+        status_emoji: emoji,
+        status_expiration: 0
+      }
+    });
+
+    // The result contains an identifier for the message, `ts`.
+    console.log(
+      `Successfully sent message`, JSON.stringify(result)
+    );
+  })();
+
+
+  /*
+  request.post("https://slack.com/api/users.profile.set", data,
+  function(error,response,body) {
+    console.log(body)
+    res.json();
+  });
+  */
+
+  /* THIS POSTS A MESSAGE!
   request.post("https://slack.com/api/chat.postMessage", data,
   function(error,response,body) {
     console.log(body)
     res.json();
   });
+  */
+
 });
+
+

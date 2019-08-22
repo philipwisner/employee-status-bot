@@ -16,10 +16,49 @@ app.listen(process.env.PORT || PORT, function() {
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
+async function fetchUserStatus(userId) {
+  const info = await web.users.profile.get({
+    user: userId
+  });
+  let user = {
+    name: info.profile.real_name,
+    status: `${info.profile.status_emoji} ${info.profile.status_text}`
+  };
+  //console.log('user is', user)
+  return user;
+}
+
+
+
+
+
 app.get("/", (req, res) => {
   console.log("Request was made at", req.url);
   res.status(200);
 });
+
+app.get("/status", (req, res) => {
+  (async () => {
+    const mems = await web.conversations.members({
+      channel: 'GHSG8EQF9'
+    });
+
+    let members = mems.members;
+    let users = [];
+
+
+    await members.forEach(async member => {
+      users.push((fetchUserStatus(member)));
+    });
+
+    Promise.all(users).then((users) => {
+      console.log("users", users);
+      res.json(users);
+    })
+
+  })();
+})
+
 /*
   This is a combo bot & slash command App
     ✓ Be able to perform slash commands anywhere that just update your status
@@ -53,6 +92,7 @@ app.post("/", (req, res) => {
   let userName = req.body.user_name;
   let userId = req.body.user_id;
   let channelId = req.body.channel_id;
+  console.log('chan', channelId);
   //let expiration = +Date.now();
   console.log(`${userName} has requested ${command}`);
 
@@ -216,4 +256,54 @@ app.post("/", (req, res) => {
 
 });
 
+
+
+app.post("/bot", (req, res) => {
+  let messageType = req.body.event.subtype;
+  if (messageType == 'message_deleted' || messageType == 'bot_message') {
+    return;
+  }
+  console.log(req.body)
+
+  let type = req.body.event.type;
+  let message = req.body.event.text.toLowerCase();
+  let channelId = req.body.event.channel;
+  let response;
+
+  if (type === 'message' ) {
+    switch (message) {
+      case "hi":
+        response = "Hi how are you?";
+        break;
+      case "help":
+        response = "Try typing *hi* or *update status*";
+        break;
+      case "update status":
+        response = "Working on that";
+        break;
+      case "stuart":
+        response = "http://gph.is/1eSfnUL";
+        break;
+      default:
+        response = "Type help to see what commands you can use";
+    }
+    console.log('response is', response);
+
+    (async () => {
+      console.log('inside async')
+      const test = await web.chat.postMessage({
+        text: response,
+        reply_broadcast: false,
+        as_user: false,
+        username: "Status Bot",
+        channel: channelId
+      });
+    })()
+    res.json();
+
+  } else {
+    return;
+  }
+
+});
 

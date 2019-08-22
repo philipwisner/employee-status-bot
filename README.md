@@ -22,3 +22,5 @@ Status Bot is a slackbot for updating and checking a user's slack status.
 - **/meeting** - Sets status to In a Meeting 🗓️
 - **/lunch** - Sets status to Eating Lunch 🍕
 
+[a relative link](todo.md)
+

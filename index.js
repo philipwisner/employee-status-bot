@@ -123,9 +123,21 @@ app.post("/", (req, res) => {
       }
     });
 
+    const success = await web.chat.postMessage({
+      text: `Your status is now ${status} ${emoji}`,
+      reply_broadcast: false,
+      as_user: false,
+      username: "Status Bot",
+      channel: "bot_test"
+    });
+
+
     // The result contains an identifier for the message, `ts`.
     console.log(
-      `Successfully sent message`, JSON.stringify(result)
+      `Successfully updated status`, JSON.stringify(result)
+    );
+    console.log(
+      `Successfully sent message`, JSON.stringify(success)
     );
   })();
 

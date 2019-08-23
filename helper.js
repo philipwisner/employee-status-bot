@@ -7,7 +7,7 @@ helper.fetchUserStatus = async function(userId) {
   const info = await web.users.info({
     user: userId
   });
-  return info;
+  return info.user;
 };
 
 module.exports = helper;

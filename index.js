@@ -2,6 +2,7 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const donenv = require("dotenv").config();
+const cors = require("cors");
 
 //IMPORTS
 const routes = require("./routes");
@@ -17,6 +18,8 @@ const app = express();
 app.listen(process.env.PORT, function() {
   console.log("Bot is listening on port " + process.env.PORT);
 });
+
+app.use(cors());
 
 //USE BODY PARSER
 app.use(bodyParser.urlencoded({ extended: true }));

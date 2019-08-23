@@ -21,7 +21,6 @@ status.channel_status = (req, res) => {
     });
 
     Promise.all(users).then((users) => {
-      console.log("users", users);
       res.json(users);
     })
   })();

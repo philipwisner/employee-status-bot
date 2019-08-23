@@ -49,6 +49,18 @@ slash.slash_command = (req, res) => {
       status = "Eating Lunch";
       emoji = ":pizza:";
       break;
+    case "/marc":
+      status = "On a Call";
+      emoji = ":slack_call:";
+      break;
+    case "/out":
+      status = "Out of Office";
+      emoji = ":door:";
+      break;
+    case "/parent":
+      status = "Being a Parent";
+      emoji = ":man-woman-girl-boy:";
+      break;
     default:
       help = true;
   }

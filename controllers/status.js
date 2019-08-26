@@ -2,7 +2,7 @@
 const { WebClient } = require("@slack/web-api");
 const token = process.env.SLACK_AUTH_TOKEN;
 const web = new WebClient(token);
-const helper = require("../helper");
+const helper = require("../helpers/helper");
 
 const status = {};
 
